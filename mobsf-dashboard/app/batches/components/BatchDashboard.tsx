@@ -102,25 +102,25 @@ const AppCard = ({ app, onAppClick, currentBatchId }: {
 
   return (
     <div className="flex flex-col items-center group">
-      <button 
-        onClick={() => currentBatchId && onAppClick(app.bundleId, currentBatchId)}
-        className="relative transform transition-all duration-200 ease-in-out group-hover:scale-105"
-      >
-        {app.icon ? (
-          <img 
-            src={`/api/files/${app.icon}`}
-            alt={app.name}
-            className="w-16 h-16 rounded-xl shadow-sm group-hover:shadow-lg group-hover:ring-2 group-hover:ring-blue-400 transition-all"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              target.parentElement?.querySelector('.default-icon')?.classList.remove('hidden');
-            }}
-          />
-        ) : (
-          <DefaultAppIcon />
-        )}
-      </button>
+        <button 
+          onClick={() => currentBatchId && onAppClick(app.bundleId, currentBatchId)}
+          className="relative transform transition-all duration-200 ease-in-out group-hover:scale-105"
+        >
+          {app.icon ? (
+            <img 
+              src={`/api/files/${app.icon}`}
+              alt={app.name}
+              className="w-16 h-16 rounded-xl shadow-sm group-hover:shadow-lg transition-all"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                target.parentElement?.querySelector('.default-icon')?.classList.remove('hidden');
+              }}
+            />
+          ) : (
+            <DefaultAppIcon />
+          )}
+        </button>
       <div className="mt-2 text-center transition-colors duration-200 group-hover:text-blue-600">
         <div className="text-xs font-medium truncate w-24" title={app.name}>
           {app.name}

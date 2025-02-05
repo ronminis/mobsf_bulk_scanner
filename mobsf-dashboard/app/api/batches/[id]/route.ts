@@ -1,26 +1,25 @@
+// app/api/batches/[id]/route.ts
 import { openDb } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  
-  const getId = async () => params.id;
-  const id = await getId();
-
   try {
+    const { id: batchId } = await context.params;
     const db = await openDb();
 
     // Get current batch
-    const currentBatch = await db.get('SELECT * FROM batches WHERE id = ?', [id]);
+    const currentBatch = await db.get('SELECT * FROM batches WHERE id = ?', [batchId]);
 
     if (!currentBatch) {
+      await db.close();
       return NextResponse.json({ error: 'Batch not found' }, { status: 404 });
     }
 
     // Get scans for the current batch
-    const scans = await db.all('SELECT * FROM scans WHERE batch_id = ?', [id]);
+    const scans = await db.all('SELECT * FROM scans WHERE batch_id = ?', [batchId]);
 
     // Process the scans data
     const processedData = {
@@ -58,8 +57,8 @@ export async function GET(
     }
 
     await db.close();
-
     return NextResponse.json(processedData);
+    
   } catch (error) {
     console.error('Error in GET /api/batches/[id]:', error);
     return NextResponse.json({ error: 'Failed to fetch batch data' }, { status: 500 });

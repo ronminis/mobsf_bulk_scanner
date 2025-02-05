@@ -262,40 +262,58 @@ def process_app(file, batch_id, batch_dir, session):
         return False
 
 def main():
-    log("INFO", "Starting scan process")
-
-    # Check prerequisites
-    if len(sys.argv) != 5:
-        log("ERROR", "Usage: python script.py <MOBSF_HOST> <MOBSF_API_KEY>")
-        sys.exit(1)
-
-    if not os.path.exists(DB_PATH):
-        log("ERROR", f"Database file not found: {DB_PATH}")
-        sys.exit(1)
-
-    # Login to MobSF
     try:
-        session = login_to_mobsf(MOBSF_HOST, USERNAME, PASSWORD)
-        log("INFO", "Successfully logged in to MobSF")
+        log("INFO", "Starting scan process")
+
+        # Check prerequisites
+        if len(sys.argv) != 5:
+            log("ERROR", "Usage: python script.py <MOBSF_HOST> <MOBSF_API_KEY>")
+            sys.exit(1)
+
+        if not os.path.exists(DB_PATH):
+            log("ERROR", f"Database file not found: {DB_PATH}")
+            sys.exit(1)
+
+        # Login to MobSF
+        try:
+            session = login_to_mobsf(MOBSF_HOST, USERNAME, PASSWORD)
+            log("INFO", "Successfully logged in to MobSF")
+        except Exception as e:
+            log("ERROR", f"Failed to log in to MobSF: {e}")
+            sys.exit(1)
+
+        # Create new batch and get batch info
+        batch_id, batch_dir = create_batch()
+        log("INFO", f"Created new batch with ID: {batch_id}")
+
+        # Process files
+        scan_count = 0
+        error_count = 0
+        for file in os.listdir(SCAN_DIR):
+            if file.endswith(".ipa") or file.endswith(".apk"):
+                if process_app(os.path.join(SCAN_DIR, file), batch_id, batch_dir, session):  # Pass session here
+                    scan_count += 1
+                else:
+                    error_count += 1
+
+        log("INFO", f"Scan process complete. Successful: {scan_count}, Failed: {error_count}")
+
+        # Exit with error if no apps were successfully scanned
+        if scan_count == 0:
+            log("ERROR", "No apps were successfully scanned")
+            sys.exit(4)
+        
+        # Exit with error if there were any failed scans
+        if error_count > 0:
+            log("WARNING", f"{error_count} apps failed to scan")
+            sys.exit(5)
+
+        # Everything completed successfully
+        sys.exit(0)
+
     except Exception as e:
-        log("ERROR", f"Failed to log in to MobSF: {e}")
-        sys.exit(1)
-
-    # Create new batch and get batch info
-    batch_id, batch_dir = create_batch()
-    log("INFO", f"Created new batch with ID: {batch_id}")
-
-    # Process files
-    scan_count = 0
-    error_count = 0
-    for file in os.listdir(SCAN_DIR):
-        if file.endswith(".ipa") or file.endswith(".apk"):
-            if process_app(os.path.join(SCAN_DIR, file), batch_id, batch_dir, session):  # Pass session here
-                scan_count += 1
-            else:
-                error_count += 1
-
-    log("INFO", f"Scan process complete. Successful: {scan_count}, Failed: {error_count}")
+        log("ERROR", f"Unexpected error in main: {e}")
+        sys.exit(6)
 
 if __name__ == "__main__":
     main()

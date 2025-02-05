@@ -69,6 +69,11 @@ export default function Navigation() {
               App Inventory
             </Link>
           </li>
+          <li>
+            <Link href="/scans" className="hover:text-gray-300">
+              Scan Management
+            </Link>
+          </li>
         </ul>
       </div>
     </nav>
